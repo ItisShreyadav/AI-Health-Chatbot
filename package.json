@@ -1,0 +1,17 @@
+{
+  "name": "groq-chatbot-backend",
+  "version": "1.0.0",
+  "description": "Backend for an AI Health Chatbot using Groq",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.40.1"
+  }
+}

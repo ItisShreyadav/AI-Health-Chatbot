@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chikitsak Bandhu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Quicksand', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+            overflow: hidden;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            max-width: 850px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+        }
+        .chat-message {
+            opacity: 0;
+            transform: translateY(15px);
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        @keyframes bounceIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .message-wrapper {
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .message-wrapper.user-msg {
+            flex-direction: row-reverse;
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .avatar.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .avatar.assistant {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .message-bubble {
+            max-width: 75%;
+            padding: 1rem 1.3rem;
+            border-radius: 20px;
+            line-height: 1.6;
+            font-size: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .user-msg .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .assistant-msg .message-bubble {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe8f0 100%);
+            color: #2d3748;
+            border-bottom-left-radius: 5px;
+            border: 2px solid #ffc0cb;
+        }
+        .lds-ellipsis {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .lds-ellipsis div {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        .lds-ellipsis div:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        .lds-ellipsis div:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+        .quick-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .quick-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .quick-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .asha-panel {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border-radius: 15px;
+            padding: 1rem;
+            margin: 0.5rem;
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+            border: 2px solid #f39c12;
+        }
+        .asha-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
+        }
+        .asha-btn {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(243, 156, 18, 0.4);
+        }
+        .asha-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.6);
+        }
+        .asha-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .asha-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: bounceIn 0.4s ease;
+        }
+        .close-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            float: right;
+            transition: all 0.3s;
+        }
+        .close-btn:hover {
+            background: #ee5a6f;
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <header style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #ffecd2 100%); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(255, 154, 158, 0.3); border-bottom: 3px solid #ff6b9d;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 50px; height: 50px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); animation: float 3s ease-in-out infinite;">
+                    <i class="fas fa-heartbeat" style="color: #ff6b9d; font-size: 26px;"></i>
+                </div>
+                <div>
+                    <h1 style="font-size: 22px; font-weight: 700; color: #ff1493; text-shadow: 2px 2px 4px rgba(255,105,180,0.3); margin: 0;">💖 Chikitsak Bandhu 💖</h1>
+                    <p style="font-size: 13px; color: #ff69b4; margin: 0; font-weight: 600;">Your Adorable Health Companion! ✨</p>
+                </div>
+            </div>
+            <div>
+                <select id="language-select" style="background: white; color: #ff1493; border: 2px solid #ff69b4; border-radius: 20px; padding: 8px 15px; font-size: 13px; font-weight: 600; outline: none; cursor: pointer; box-shadow: 0 3px 10px rgba(255,105,180,0.2);">
+                    <option value="en-US">🌍 English</option>
+
+                    <optgroup label="🇮🇳 Indian Languages" style="color: #ff6b9d; font-weight: 700;">
+                        <option value="hi-IN">🇮🇳 हिन्दी (Hindi)</option>
+                        <option value="bn-IN">🇮🇳 বাংলা (Bengali)</option>
+                        <option value="te-IN">🇮🇳 తెలుగు (Telugu)</option>
+                        <option value="ta-IN">🇮🇳 தமிழ் (Tamil)</option>
+                        <option value="mr-IN">🇮🇳 मराठी (Marathi)</option>
+                        <option value="gu-IN">🇮🇳 ગુજરાતી (Gujarati)</option>
+                        <option value="kn-IN">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                        <option value="ml-IN">🇮🇳 മലയാളം (Malayalam)</option>
+                        <option value="pa-IN">🇮🇳 ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="or-IN">🇮🇳 ଓଡ଼ିଆ (Odia)</option>
+                        <option value="as-IN">🇮🇳 অসমীয়া (Assamese)</option>
+                        <option value="ur-IN">🇮🇳 اردو (Urdu)</option>
+                    </optgroup>
+
+                    <optgroup label="🌏 Other Languages" style="color: #667eea; font-weight: 700;">
+                        <option value="es-ES">🇪🇸 Español</option>
+                        <option value="fr-FR">🇫🇷 Français</option>
+                        <option value="de-DE">🇩🇪 Deutsch</option>
+                        <option value="pt-BR">🇧🇷 Português</option>
+                        <option value="zh-CN">🇨🇳 中文</option>
+                        <option value="ja-JP">🇯🇵 日本語</option>
+                        <option value="ar-SA">🇸🇦 العربية</option>
+                    </optgroup>
+                </select>
+            </div>
+        </header>
+
+        <!-- ASHA Worker Section -->
+        <div class="asha-panel">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="asha-avatar">👩‍⚕️</div>
+                <div style="flex: 1;">
+                    <h3 style="margin: 0; color: #e67e22; font-size: 16px; font-weight: 700;">🏥 Your ASHA Worker</h3>
+                    <p style="margin: 0.3rem 0 0 0; color: #d35400; font-size: 13px; font-weight: 600;">Priya Sharma • Available Now ✅</p>
+                </div>
+                <button class="asha-btn" onclick="openAshaModal()">
+                    📞 Contact
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div style="background: linear-gradient(to right, #ffecd2 0%, #fcb69f 100%); padding: 1rem; border-bottom: 2px solid #ffc0cb;">
+            <p style="margin: 0 0 0.8rem 0; text-align: center; color: #e67e22; font-weight: 700; font-size: 13px;">💬 Quick Health Topics</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 0.8rem;">
+                <button class="quick-btn" onclick="document.getElementById('message-input').value='What are common flu symptoms? 🤧'; sendMessage();">
+                    🌡️ Symptoms
+                </button>
+                <button class="quick-btn" onclick="document.getElementById('message-input').value='Give me healthy diet tips 🥗'; sendMessage();">
+                    🍎 Nutrition
+                </button>
+                <button class="quick-btn" onclick="document.getElementById('message-input').value='How to reduce stress? 🧘'; sendMessage();">
+                    🧠 Mental Health
+                </button>
+                <button class="quick-btn" onclick="document.getElementById('message-input').value='First aid for cuts 🩹'; sendMessage();">
+                    🚑 First Aid
+                </button>
+            </div>
+            <p style="margin: 0.8rem 0 0.5rem 0; text-align: center; color: #e67e22; font-weight: 700; font-size: 13px;">🏥 ASHA Services</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <button class="quick-btn" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);" onclick="document.getElementById('message-input').value='Tell me about vaccination schedule 💉'; sendMessage();">
+                    💉 Vaccination
+                </button>
+                <button class="quick-btn" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);" onclick="document.getElementById('message-input').value='Pregnancy care tips 🤰'; sendMessage();">
+                    🤰 Maternal Care
+                </button>
+                <button class="quick-btn" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);" onclick="document.getElementById('message-input').value='Child health checkup 👶'; sendMessage();">
+                    👶 Child Health
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <main id="chat-messages" style="flex: 1; overflow-y: auto; background: linear-gradient(to bottom, #fff5f7, #ffe4e9); padding: 1rem;">
+            <!-- Messages will be appended here -->
+        </main>
+
+        <!-- Input Area -->
+        <footer style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 1.5rem; box-shadow: 0 -4px 20px rgba(255,105,180,0.2); border-top: 3px solid #ff69b4;">
+            <div style="max-width: 100%; display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="message-input" placeholder="Type your health question here... 💬" style="flex: 1; background: white; border: 3px solid #ff69b4; border-radius: 30px; padding: 15px 20px; font-size: 15px; outline: none; color: #2d3748; font-weight: 500; box-shadow: 0 4px 15px rgba(255,105,180,0.2);">
+                <button id="mic-button" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(245,87,108,0.4); transition: all 0.3s; font-size: 20px;">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button id="stop-speech-button" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(238,90,111,0.4); transition: all 0.3s; font-size: 20px; display: none;">
+                    <i class="fas fa-stop"></i>
+                </button>
+                <button id="send-button" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 15px rgba(102,126,234,0.4); transition: all 0.3s; font-size: 20px;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ASHA Worker Modal -->
+    <div id="ashaModal" class="asha-modal">
+        <div class="asha-modal-content">
+            <button class="close-btn" onclick="closeAshaModal()">✕</button>
+            <div style="text-align: center; margin-top: 1rem;">
+                <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 50px; box-shadow: 0 6px 20px rgba(238, 90, 111, 0.4);">
+                    👩‍⚕️
+                </div>
+                <h2 style="color: #e67e22; margin: 1rem 0 0.5rem 0; font-size: 24px;">Priya Sharma</h2>
+                <p style="color: #95a5a6; font-size: 14px; margin: 0;">ASHA Health Worker</p>
+                <div style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); padding: 0.5rem 1rem; border-radius: 20px; display: inline-block; margin-top: 0.5rem;">
+                    <p style="margin: 0; color: #27ae60; font-weight: 700; font-size: 13px;">✅ Available Now</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; background: #f8f9fa; padding: 1.5rem; border-radius: 15px;">
+                <div style="margin-bottom: 1rem;">
+                    <p style="margin: 0; color: #7f8c8d; font-size: 12px; font-weight: 600;">📱 PHONE</p>
+                    <p style="margin: 0.3rem 0 0 0; color: #2c3e50; font-size: 16px; font-weight: 700;">+91 98765 43210</p>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <p style="margin: 0; color: #7f8c8d; font-size: 12px; font-weight: 600;">📍 AREA</p>
+                    <p style="margin: 0.3rem 0 0 0; color: #2c3e50; font-size: 16px; font-weight: 700;">Sector 15, Noida</p>
+                </div>
+                <div>
+                    <p style="margin: 0; color: #7f8c8d; font-size: 12px; font-weight: 600;">⏰ WORKING HOURS</p>
+                    <p style="margin: 0.3rem 0 0 0; color: #2c3e50; font-size: 16px; font-weight: 700;">Mon-Sat: 9:00 AM - 5:00 PM</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 10px;">
+                <button style="flex: 1; background: linear-gradient(135deg, #25d366 0%, #20ba5a 100%); color: white; border: none; padding: 0.8rem; border-radius: 15px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); transition: all 0.3s;" onclick="window.open('https://wa.me/919876543210', '_blank')">
+                    💬 WhatsApp
+                </button>
+                <button style="flex: 1; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border: none; padding: 0.8rem; border-radius: 15px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); transition: all 0.3s;" onclick="window.location.href='tel:+919876543210'">
+                    📞 Call Now
+                </button>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(135deg, #fff5f7 0%, #ffe8f0 100%); border-radius: 15px; border: 2px solid #ffc0cb;">
+                <p style="margin: 0; color: #e67e22; font-weight: 700; font-size: 14px; margin-bottom: 0.5rem;">🌟 Services Provided:</p>
+                <ul style="margin: 0; padding-left: 1.2rem; color: #2c3e50; font-size: 13px; line-height: 1.8;">
+                    <li>Health consultations & advice</li>
+                    <li>Vaccination support</li>
+                    <li>Maternal & child health care</li>
+                    <li>Medicine distribution</li>
+                    <li>Health awareness programs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const micButton = document.getElementById('mic-button');
+        const languageSelect = document.getElementById('language-select');
+        const stopSpeechButton = document.getElementById('stop-speech-button');
+
+        // Client-side health topic validation
+        function isHealthRelatedQuery(query) {
+            const queryLower = query.toLowerCase();
+
+            // Health-related keywords
+            const healthKeywords = [
+                'symptom', 'disease', 'illness', 'infection', 'pain', 'ache', 'fever', 'cold', 'flu',
+                'cough', 'headache', 'nausea', 'vomit', 'diarrhea', 'constipation', 'allergy',
+                'heart', 'lung', 'stomach', 'liver', 'kidney', 'brain', 'skin', 'bone', 'muscle',
+                'blood', 'throat', 'ear', 'eye', 'nose', 'chest', 'back', 'joint', 'head',
+                'health', 'medical', 'medicine', 'medication', 'drug', 'prescription', 'doctor',
+                'hospital', 'clinic', 'treatment', 'therapy', 'cure', 'heal', 'recover',
+                'nutrition', 'diet', 'food', 'vitamin', 'protein', 'carb', 'fat', 'calorie',
+                'nutrient', 'meal', 'eating', 'weight', 'obesity', 'diabetes', 'cholesterol',
+                'exercise', 'fitness', 'workout', 'yoga', 'gym', 'running', 'walking', 'cardio',
+                'strength', 'training', 'sport', 'physical activity',
+                'mental health', 'stress', 'anxiety', 'depression', 'sleep', 'insomnia', 'therapy',
+                'counseling', 'psychology', 'mood', 'emotion', 'wellbeing', 'wellness',
+                'first aid', 'emergency', 'injury', 'wound', 'burn', 'cut', 'bruise', 'fracture',
+                'bleeding', 'cpr', 'choking',
+                'vaccine', 'vaccination', 'immunization', 'screening', 'checkup', 'prevention',
+                'hygiene', 'sanitation', 'wash hands',
+                'cancer', 'tumor', 'hypertension', 'asthma', 'arthritis', 'migraine', 'stroke',
+                'covid', 'coronavirus', 'pandemic', 'epidemic', 'chronic', 'acute',
+                'tired', 'fatigue', 'energy', 'weak', 'dizzy', 'pregnant', 'pregnancy', 'baby',
+                'child health', 'senior', 'aging', 'immune', 'breath', 'swelling', 'rash'
+            ];
+
+            // Explicitly non-health topics
+            const nonHealthKeywords = [
+                'weather', 'sports score', 'movie', 'recipe', 'cooking', 'politics', 'news',
+                'stock', 'market', 'bitcoin', 'crypto', 'game', 'programming', 'code',
+                'math problem', 'homework', 'history', 'geography', 'travel', 'hotel',
+                'restaurant', 'shopping', 'fashion', 'music', 'song', 'lyrics'
+            ];
+
+            // Check for non-health topics first
+            for (const keyword of nonHealthKeywords) {
+                if (queryLower.includes(keyword)) {
+                    return false;
+                }
+            }
+
+            // Check for health keywords
+            for (const keyword of healthKeywords) {
+                if (queryLower.includes(keyword)) {
+                    return true;
+                }
+            }
+
+            // Default to false if no health keywords found
+            return false;
+        }
+
+        // Speech recognition setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        let isRecording = false;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = languageSelect.value;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micButton.style.color = '#ef4444';
+                micButton.innerHTML = '<i class="fas fa-stop"></i>';
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micButton.style.color = '#8e8ea0';
+                micButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = transcript;
+                sendMessage();
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                addMessage('assistant', `Oops! 😅 I couldn't hear you properly. Please check your microphone and try again! 🎤💕`);
+            };
+
+        } else {
+            micButton.disabled = true;
+            micButton.style.opacity = '0.5';
+            micButton.style.cursor = 'not-allowed';
+            console.log("Speech Recognition not supported in this browser.");
+        }
+        
+        // --- Event Listeners ---
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        micButton.addEventListener('click', toggleRecording);
+        languageSelect.addEventListener('change', () => {
+            if (recognition) {
+                recognition.lang = languageSelect.value;
+            }
+        });
+
+        // Event listener for the stop button
+        stopSpeechButton.addEventListener('click', () => {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                stopSpeechButton.style.display = 'none';
+            }
+        });
+
+        function toggleRecording() {
+            if (!recognition) return;
+            // Stop any ongoing speech before starting to record
+            window.speechSynthesis.cancel();
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Could not start recognition:", e);
+                    addMessage('assistant', "Could not start voice recognition. Please ensure microphone access is granted and try again.");
+                }
+            }
+        }
+
+        function addMessage(sender, text) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message-wrapper', 'chat-message');
+            messageWrapper.classList.add(sender === 'user' ? 'user-msg' : 'assistant-msg');
+
+            // Create avatar
+            const avatar = document.createElement('div');
+            avatar.classList.add('avatar', sender === 'user' ? 'user' : 'assistant');
+            avatar.innerHTML = sender === 'user' ? '😊' : '💖';
+
+            // Create message bubble
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+
+            if (text === 'loading') {
+                messageBubble.innerHTML = '<div class="lds-ellipsis"><div></div><div></div><div></div></div>';
+            } else {
+                messageBubble.textContent = text;
+            }
+
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(messageBubble);
+
+            chatMessages.appendChild(messageWrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageWrapper;
+        }
+
+        async function sendMessage() {
+            // Stop any currently speaking utterance before sending a new message
+            window.speechSynthesis.cancel();
+
+            const userQuery = messageInput.value.trim();
+            if (userQuery === '') return;
+
+            // Client-side guardrail validation
+            if (!isHealthRelatedQuery(userQuery)) {
+                addMessage('user', userQuery);
+                messageInput.value = '';
+                const warningMessage = "Oopsie! 🌸 I can only help with health and wellness topics, sweetie! 💕 Please ask me about symptoms, nutrition, fitness, mental health, or any health concerns. I'm here to make you feel better! ✨";
+                setTimeout(() => {
+                    addMessage('assistant', warningMessage);
+                }, 300);
+                return;
+            }
+
+            addMessage('user', userQuery);
+            messageInput.value = '';
+            const loadingMessage = addMessage('assistant', 'loading');
+
+            try {
+                const aiResponseText = await getAIResponse(userQuery);
+                loadingMessage.querySelector('.message-bubble').textContent = aiResponseText;
+                speak(aiResponseText);
+            } catch (error) {
+                console.error("Error in sendMessage:", error);
+                const errorMessage = "Oh no! 😢 I'm having trouble connecting right now. Please try again in a moment! 💫";
+                loadingMessage.querySelector('.message-bubble').textContent = errorMessage;
+            }
+        }
+
+        async function getAIResponse(userQuery) {
+            console.log("Sending to backend:", { userQuery, lang: languageSelect.value });
+            try {
+                const response = await fetch('http://localhost:3000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userQuery: userQuery,
+                        lang: languageSelect.value
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json().catch(() => ({ error: "Failed to parse error response from server." }));
+                    console.error("API Error:", response.status, errorBody);
+                    throw new Error(`API Error: ${response.status} - ${errorBody.error || "Unknown server error"}`);
+                }
+                
+                const data = await response.json();
+                return data.text;
+
+            } catch (error) {
+                console.error('Error fetching AI response:', error);
+                throw error; // Re-throw the error to be caught by sendMessage
+            }
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = languageSelect.value;
+
+                utterance.onstart = () => {
+                    stopSpeechButton.style.display = 'block';
+                };
+
+                utterance.onend = () => {
+                    stopSpeechButton.style.display = 'none';
+                };
+
+                utterance.onerror = () => {
+                    stopSpeechButton.style.display = 'none';
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.log("Text-to-Speech not supported in this browser.");
+            }
+        }
+
+        // ASHA Modal Functions
+        function openAshaModal() {
+            document.getElementById('ashaModal').style.display = 'flex';
+        }
+
+        function closeAshaModal() {
+            document.getElementById('ashaModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('ashaModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Initial welcome message
+        window.onload = () => {
+            const welcomeText = "Hiii there! 💖✨ I'm Chikitsak Bandhu, your super cute and caring Health Companion! 🌸 I'm here to help you with allll your health questions - from symptoms and nutrition to mental wellness and fitness! 🥗🧘💪\n\nDid you know? Your dedicated ASHA worker Priya is available to help you! Click the '📞 Contact' button above to reach out to her anytime! 👩‍⚕️💕\n\nAsk me anything health-related and I'll do my best to help you feel amazing! Ready to start our healthy journey together? 🌟";
+            addMessage('assistant', welcomeText);
+        };
+    </script>
+</body>
+</html>
+
